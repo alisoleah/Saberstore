@@ -1,4 +1,5 @@
-import { ShoppingCart, User, Phone, MapPin, Search } from 'lucide-react';
+import { useState } from 'react';
+import { ShoppingCart, User, Phone, MapPin, Search, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
   cartItemCount?: number;
@@ -7,6 +8,18 @@ interface HeaderProps {
 }
 
 export function Header({ cartItemCount = 0, onCartClick, onLoginClick }: HeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const categories = [
+    'Large Appliances',
+    'Small Appliances',
+    'Mobiles',
+    'Laptops',
+    'TVs',
+    'Air Conditioners',
+    'Flash Deals'
+  ];
+
   return (
     <header className="bg-[#003366] text-white sticky top-0 z-50 shadow-lg">
       {/* Top bar */}
@@ -36,7 +49,16 @@ export function Header({ cartItemCount = 0, onCartClick, onLoginClick }: HeaderP
       {/* Main header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
+            {/* Mobile Menu Toggle */}
+            <button
+              className="md:hidden text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+
             <h1 className="text-white cursor-pointer">
               SaberStore
             </h1>
@@ -84,20 +106,46 @@ export function Header({ cartItemCount = 0, onCartClick, onLoginClick }: HeaderP
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="bg-[#003366]/80 border-t border-white/10">
+      {/* Navigation - Desktop */}
+      <nav className="hidden md:block bg-[#003366]/80 border-t border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-6 overflow-x-auto py-3">
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">Large Appliances</a>
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">Small Appliances</a>
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">Mobiles</a>
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">Laptops</a>
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">TVs</a>
-            <a href="#" className="text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors">Air Conditioners</a>
-            <a href="#" className="text-sm whitespace-nowrap text-[#FF6600]">Flash Deals</a>
+            {categories.map((category, index) => (
+              <a
+                key={category}
+                href="#"
+                className={`text-sm whitespace-nowrap hover:text-[#FF6600] transition-colors ${
+                  index === categories.length - 1 ? 'text-[#FF6600]' : ''
+                }`}
+              >
+                {category}
+              </a>
+            ))}
           </div>
         </div>
       </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <nav className="md:hidden bg-[#002244] border-t border-white/10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex flex-col gap-3">
+              {categories.map((category, index) => (
+                <a
+                  key={category}
+                  href="#"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-sm py-2 px-4 rounded-lg hover:bg-white/10 transition-colors ${
+                    index === categories.length - 1 ? 'text-[#FF6600] bg-white/5' : ''
+                  }`}
+                >
+                  {category}
+                </a>
+              ))}
+            </div>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

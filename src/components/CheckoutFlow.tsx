@@ -25,6 +25,14 @@ export function CheckoutFlow({ items, onComplete, onBack }: CheckoutFlowProps) {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Back to Shopping Button */}
+      <button
+        onClick={onBack}
+        className="mb-6 text-[#003366] hover:text-[#FF6600] transition-colors flex items-center gap-2"
+      >
+        <span>←</span> Back to Shopping
+      </button>
+
       {/* Progress Steps */}
       <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-8">

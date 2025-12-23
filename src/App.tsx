@@ -14,6 +14,35 @@ import { Product, CartItem } from './types';
 
 type Page = 'home' | 'credit-check' | 'checkout';
 
+const Breadcrumbs = ({
+  page,
+  onNavigate
+}: {
+  page: Page;
+  onNavigate: (page: Page) => void;
+}) => {
+  if (page === 'home') return null;
+
+  return (
+    <nav className="bg-[#F0F4F8] border-b border-[#E0E0E0]">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center gap-2 text-sm">
+          <button
+            onClick={() => onNavigate('home')}
+            className="text-[#003366] hover:text-[#FF6600] transition-colors"
+          >
+            Home
+          </button>
+          <span className="text-[#666666]">/</span>
+          <span className="text-[#1A1A1A] font-medium">
+            {page === 'credit-check' ? 'Credit Check' : 'Checkout'}
+          </span>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -67,6 +96,8 @@ export default function App() {
         onCartClick={() => setShowCart(true)}
         onLoginClick={() => setCurrentPage('credit-check')}
       />
+
+      <Breadcrumbs page={currentPage} onNavigate={setCurrentPage} />
 
       <main className="flex-1">
         {currentPage === 'home' && (
