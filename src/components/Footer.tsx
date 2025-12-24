@@ -1,6 +1,10 @@
-import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Phone, Mail, MapPin, Facebook, Instagram, Youtube, Shield } from 'lucide-react';
 
-export function Footer() {
+interface FooterProps {
+  onAdminClick?: () => void;
+}
+
+export function Footer({ onAdminClick }: FooterProps = {}) {
   return (
     <footer className="bg-[#003366] text-white mt-16">
       <div className="container mx-auto px-4 py-12">
@@ -75,6 +79,15 @@ export function Footer() {
             <div className="flex gap-4">
               <a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Terms of Service</a>
               <a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Privacy Policy</a>
+              {onAdminClick && (
+                <button
+                  onClick={onAdminClick}
+                  className="text-white/70 hover:text-white text-sm transition-colors flex items-center gap-1"
+                >
+                  <Shield className="w-3 h-3" />
+                  Admin
+                </button>
+              )}
             </div>
           </div>
         </div>

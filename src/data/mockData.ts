@@ -143,3 +143,142 @@ export const brands = [
   'Sony',
   'Bosch',
 ];
+
+// Import types
+import type { InstallmentPlanConfig, StoreBranch, Profile, CreditLimit } from '../types';
+
+export const mockInstallmentPlans: InstallmentPlanConfig[] = [
+  {
+    id: '1',
+    name: 'Zero Interest - 6 Months',
+    durationMonths: 6,
+    interestRate: 0,
+    minDownPayment: 20,
+    isActive: true,
+    applicableCategories: ['Mobiles', 'Small Appliances'],
+  },
+  {
+    id: '2',
+    name: 'Zero Interest - 12 Months',
+    durationMonths: 12,
+    interestRate: 0,
+    minDownPayment: 15,
+    isActive: true,
+    applicableCategories: ['Mobiles', 'TVs', 'Laptops'],
+  },
+  {
+    id: '3',
+    name: 'Zero Interest - 18 Months',
+    durationMonths: 18,
+    interestRate: 0,
+    minDownPayment: 10,
+    isActive: true,
+  },
+  {
+    id: '4',
+    name: 'Standard - 24 Months',
+    durationMonths: 24,
+    interestRate: 0,
+    minDownPayment: 10,
+    isActive: true,
+  },
+  {
+    id: '5',
+    name: 'Extended - 24 Months (5% Interest)',
+    durationMonths: 24,
+    interestRate: 5,
+    minDownPayment: 5,
+    isActive: true,
+    applicableCategories: ['Large Appliances'],
+  },
+];
+
+export const mockStoreBranches: StoreBranch[] = [
+  {
+    id: '1',
+    name: 'Nasr City Branch',
+    city: 'Cairo',
+    address: '15 Mostafa El-Nahas St, Nasr City, Cairo',
+    phone: '0222747000',
+    workingHours: 'Sat-Thu: 10:00 AM - 10:00 PM, Fri: 2:00 PM - 10:00 PM',
+    coordinates: { lat: 30.0444, lng: 31.3585 },
+    hasStock: true,
+  },
+  {
+    id: '2',
+    name: '6th October Branch',
+    city: 'Giza',
+    address: 'Mall of Arabia, 6th October City, Giza',
+    phone: '0238363000',
+    workingHours: 'Daily: 10:00 AM - 12:00 AM',
+    coordinates: { lat: 29.9773, lng: 30.9387 },
+    hasStock: true,
+  },
+  {
+    id: '3',
+    name: 'City Center Alexandria',
+    city: 'Alexandria',
+    address: 'City Center Alexandria, Smouha, Alexandria',
+    phone: '034201000',
+    workingHours: 'Daily: 10:00 AM - 11:00 PM',
+    coordinates: { lat: 31.2357, lng: 29.9553 },
+    hasStock: false,
+  },
+];
+
+// Mock KYC Applications for Admin Dashboard
+export const mockKYCApplications: (Profile & { userName: string; userPhone: string })[] = [
+  {
+    userId: 'user-1',
+    userName: 'Ahmed Mohamed',
+    userPhone: '01012345678',
+    nationalId: '29501012345678',
+    scannedIdUrl: 'https://images.unsplash.com/photo-1633409361618-c73427e4e206?w=400',
+    utilityBillUrl: 'https://images.unsplash.com/photo-1554224311-beee4ece2f2b?w=400',
+    monthlySalary: 15000,
+    employer: 'Vodafone Egypt',
+    address: '12 Ahmed Zaki St, Mohandessin, Giza',
+    kycStatus: 'Pending',
+    kycSubmittedAt: new Date('2024-12-23T10:30:00'),
+  },
+  {
+    userId: 'user-2',
+    userName: 'Fatma Hassan',
+    userPhone: '01123456789',
+    nationalId: '28802025678901',
+    scannedIdUrl: 'https://images.unsplash.com/photo-1633409361618-c73427e4e206?w=400',
+    utilityBillUrl: 'https://images.unsplash.com/photo-1554224311-beee4ece2f2b?w=400',
+    monthlySalary: 20000,
+    employer: 'Banque Misr',
+    address: '45 Salah Salem Rd, Heliopolis, Cairo',
+    kycStatus: 'Pending',
+    kycSubmittedAt: new Date('2024-12-22T14:15:00'),
+  },
+  {
+    userId: 'user-3',
+    userName: 'Youssef Ibrahim',
+    userPhone: '01234567890',
+    nationalId: '29012031234567',
+    scannedIdUrl: 'https://images.unsplash.com/photo-1633409361618-c73427e4e206?w=400',
+    utilityBillUrl: 'https://images.unsplash.com/photo-1554224311-beee4ece2f2b?w=400',
+    monthlySalary: 12000,
+    employer: 'Etisalat Egypt',
+    address: '78 Gamal Abdel Nasser Rd, Alexandria',
+    kycStatus: 'Approved',
+    kycSubmittedAt: new Date('2024-12-20T09:00:00'),
+    kycApprovedAt: new Date('2024-12-21T11:30:00'),
+    approvedBy: 'admin-1',
+  },
+];
+
+export const mockCreditLimits: CreditLimit[] = [
+  {
+    userId: 'user-3',
+    totalLimit: 50000,
+    currentBalance: 0,
+    remainingLimit: 50000,
+    status: 'Active',
+    approvedBy: 'admin-1',
+    approvedAt: new Date('2024-12-21T11:30:00'),
+  },
+];

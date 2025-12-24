@@ -11,11 +11,12 @@ import { CreditLimitChecker } from './components/CreditLimitChecker';
 import { CheckoutFlow } from './components/CheckoutFlow';
 import { BudgetFilter } from './components/BudgetFilter';
 import { ProductComparison } from './components/ProductComparison';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { mockProducts } from './data/mockData';
 import { Product, CartItem } from './types';
 import { calculateInstallment } from './utils/installmentCalculator';
 
-type Page = 'home' | 'credit-check' | 'checkout';
+type Page = 'home' | 'credit-check' | 'checkout' | 'admin';
 
 const Breadcrumbs = ({
   page,
@@ -38,7 +39,7 @@ const Breadcrumbs = ({
           </button>
           <span className="text-[#666666]">/</span>
           <span className="text-[#1A1A1A] font-medium">
-            {page === 'credit-check' ? 'Credit Check' : 'Checkout'}
+            {page === 'credit-check' ? 'Credit Check' : page === 'admin' ? 'Admin Dashboard' : 'Checkout'}
           </span>
         </div>
       </div>
@@ -298,9 +299,11 @@ export default function App() {
             />
           </div>
         )}
+
+        {currentPage === 'admin' && <AdminDashboard />}
       </main>
 
-      <Footer />
+      {currentPage !== 'admin' && <Footer onAdminClick={() => setCurrentPage('admin')} />}
 
       {/* Modals */}
       {selectedProduct && (
