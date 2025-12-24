@@ -204,6 +204,98 @@ export class ProductsService {
       },
     });
   }
+
+  /**
+   * Create a new product
+   */
+  async createProduct(data: any) {
+    // Validate required fields
+    if (!data.name || !data.sku || !data.cashPrice || !data.categoryId) {
+      throw new Error('Missing required fields');
+    }
+
+    // Check if SKU exists
+    const existing = await prisma.product.findUnique({
+      where: { sku: data.sku },
+    });
+
+    if (existing) {
+      throw new Error('Product with this SKU already exists');
+    }
+
+    return await prisma.product.create({
+      data: {
+        name: data.name,
+        sku: data.sku,
+        cashPrice: data.cashPrice,
+        oldPrice: data.oldPrice,
+        stockQty: data.stockQty || 0,
+        brand: data.brand,
+        categoryId: data.categoryId,
+        warranty: data.warranty,
+        specs: data.specs,
+        badges: data.badges,
+        imageUrl: data.imageUrl || '',
+        isActive: data.isActive !== undefined ? data.isActive : true,
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  /**
+   * Update a product
+   */
+  async updateProduct(id: string, data: any) {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // If updating SKU, check uniqueness
+    if (data.sku && data.sku !== product.sku) {
+      const existing = await prisma.product.findUnique({
+        where: { sku: data.sku },
+      });
+
+      if (existing) {
+        throw new Error('Product with this SKU already exists');
+      }
+    }
+
+    return await prisma.product.update({
+      where: { id },
+      data,
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  /**
+   * Delete (soft delete) a product
+   */
+  async deleteProduct(id: string) {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Soft delete by setting isActive to false
+    return await prisma.product.update({
+      where: { id },
+      data: {
+        isActive: false,
+      },
+    });
+  }
 }
 
 export default new ProductsService();

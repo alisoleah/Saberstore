@@ -208,6 +208,67 @@ export class ProductsController {
       });
     }
   }
+
+  /**
+   * Create a product (Admin only)
+   */
+  async createProduct(req: Request, res: Response) {
+    try {
+      const product = await productsService.createProduct(req.body);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Product created successfully',
+        data: product,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to create product',
+      });
+    }
+  }
+
+  /**
+   * Update a product (Admin only)
+   */
+  async updateProduct(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const product = await productsService.updateProduct(id, req.body);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Product updated successfully',
+        data: product,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to update product',
+      });
+    }
+  }
+
+  /**
+   * Delete a product (Admin only)
+   */
+  async deleteProduct(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      await productsService.deleteProduct(id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Product deleted successfully',
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to delete product',
+      });
+    }
+  }
 }
 
 export default new ProductsController();

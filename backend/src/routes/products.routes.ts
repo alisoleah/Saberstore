@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import productsController from '../controllers/products.controller';
-import { optionalAuth } from '../middleware/auth.middleware';
+import { authenticate, optionalAuth, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -52,5 +52,10 @@ router.get('/categories', optionalAuth, productsController.getCategories);
  * Params: id (category UUID)
  */
 router.get('/categories/:id', optionalAuth, productsController.getCategoryById);
+
+// Admin routes (Protected)
+router.post('/', authenticate, requireRole('admin'), productsController.createProduct);
+router.put('/:id', authenticate, requireRole('admin'), productsController.updateProduct);
+router.delete('/:id', authenticate, requireRole('admin'), productsController.deleteProduct);
 
 export default router;
