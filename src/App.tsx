@@ -11,6 +11,7 @@ import { CreditLimitChecker } from './components/CreditLimitChecker';
 import { CheckoutFlow } from './components/CheckoutFlow';
 import { BudgetFilter } from './components/BudgetFilter';
 import { ProductComparison } from './components/ProductComparison';
+import { LoginModal } from './components/LoginModal';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { mockProducts } from './data/mockData';
 import { Product, CartItem } from './types';
@@ -55,6 +56,8 @@ export default function App() {
   const [budgetFilter, setBudgetFilter] = useState<number>(0);
   const [compareProducts, setCompareProducts] = useState<Product[]>([]);
   const [showComparison, setShowComparison] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; phone: string } | null>(null);
 
   const handleAddToCart = (product: Product) => {
     setCartItems((prev) => {
@@ -128,7 +131,7 @@ export default function App() {
       <Header
         cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         onCartClick={() => setShowCart(true)}
-        onLoginClick={() => setCurrentPage('credit-check')}
+        onLoginClick={() => setShowLogin(true)}
       />
 
       <Breadcrumbs page={currentPage} onNavigate={setCurrentPage} />
@@ -329,6 +332,16 @@ export default function App() {
           products={compareProducts}
           onClose={() => setShowComparison(false)}
           onRemoveProduct={handleRemoveFromCompare}
+        />
+      )}
+
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            setCurrentPage('credit-check');
+          }}
         />
       )}
     </div>
