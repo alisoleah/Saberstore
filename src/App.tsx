@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HeroSlider } from './components/HeroSlider';
@@ -9,8 +9,11 @@ import { CartModal } from './components/CartModal';
 import { CountdownTimer } from './components/CountdownTimer';
 import { CreditLimitChecker } from './components/CreditLimitChecker';
 import { CheckoutFlow } from './components/CheckoutFlow';
+import { BudgetFilter } from './components/BudgetFilter';
+import { ProductComparison } from './components/ProductComparison';
 import { mockProducts } from './data/mockData';
 import { Product, CartItem } from './types';
+import { calculateInstallment } from './utils/installmentCalculator';
 
 type Page = 'home' | 'credit-check' | 'checkout';
 
@@ -48,6 +51,9 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [budgetFilter, setBudgetFilter] = useState<number>(0);
+  const [compareProducts, setCompareProducts] = useState<Product[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
 
   const handleAddToCart = (product: Product) => {
     setCartItems((prev) => {
@@ -89,6 +95,33 @@ export default function App() {
     setCurrentPage('home');
   };
 
+  const handleToggleCompare = (product: Product) => {
+    setCompareProducts((prev) => {
+      const exists = prev.find((p) => p.id === product.id);
+      if (exists) {
+        return prev.filter((p) => p.id !== product.id);
+      }
+      if (prev.length >= 3) {
+        return prev; // Max 3 products
+      }
+      return [...prev, product];
+    });
+  };
+
+  const handleRemoveFromCompare = (productId: string) => {
+    setCompareProducts((prev) => prev.filter((p) => p.id !== productId));
+  };
+
+  // Filter products by monthly budget
+  const filteredProducts = useMemo(() => {
+    if (budgetFilter === 0) return mockProducts;
+
+    return mockProducts.filter((product) => {
+      const installment = calculateInstallment(product.price, 0, 24, 0);
+      return installment.monthlyPayment <= budgetFilter;
+    });
+  }, [budgetFilter]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -105,6 +138,46 @@ export default function App() {
             {/* Hero Slider */}
             <HeroSlider />
 
+            {/* Budget Filter */}
+            <BudgetFilter
+              selectedBudget={budgetFilter}
+              onBudgetChange={setBudgetFilter}
+            />
+
+            {/* Compare Bar */}
+            {compareProducts.length > 0 && (
+              <div className="bg-gradient-to-r from-[#003366] to-[#0055AA] rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <p className="text-white font-medium">
+                    {compareProducts.length} product{compareProducts.length !== 1 ? 's' : ''} selected for comparison
+                  </p>
+                  <div className="flex gap-2">
+                    {compareProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="bg-white/20 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                      >
+                        {product.brand}
+                        <button
+                          onClick={() => handleRemoveFromCompare(product.id)}
+                          className="hover:text-[#FF6600]"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowComparison(true)}
+                  disabled={compareProducts.length < 2}
+                  className="bg-[#FF6600] hover:bg-[#FF6600]/90 disabled:bg-[#666666] text-white px-6 py-2 rounded-lg transition-colors disabled:cursor-not-allowed"
+                >
+                  Compare Now
+                </button>
+              </div>
+            )}
+
             {/* Category Grid */}
             <section>
               <h2 className="text-[#003366] mb-6">Shop by Category</h2>
@@ -118,13 +191,26 @@ export default function App() {
                 <CountdownTimer />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {mockProducts.slice(0, 4).map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    onClick={setSelectedProduct}
-                  />
+                {filteredProducts.slice(0, 4).map((product) => (
+                  <div key={product.id} className="relative">
+                    <ProductCard
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                      onClick={setSelectedProduct}
+                    />
+                    <button
+                      onClick={() => handleToggleCompare(product)}
+                      className={`absolute top-4 left-4 z-20 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        compareProducts.find((p) => p.id === product.id)
+                          ? 'bg-[#00C851] text-white'
+                          : 'bg-white text-[#003366] border-2 border-[#003366] hover:bg-[#003366] hover:text-white'
+                      }`}
+                    >
+                      {compareProducts.find((p) => p.id === product.id)
+                        ? '✓ Added'
+                        : '+ Compare'}
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -132,14 +218,43 @@ export default function App() {
             {/* Best Selling Installment Deals */}
             <section>
               <h2 className="text-[#003366] mb-6">💰 Best Installment Deals</h2>
+              {budgetFilter > 0 && filteredProducts.length === 0 && (
+                <div className="bg-[#F0F4F8] rounded-lg p-12 text-center">
+                  <p className="text-[#666666] mb-2">
+                    No products found within your budget
+                  </p>
+                  <p className="text-[#666666] text-sm mb-4">
+                    Try increasing your monthly budget or browse all products
+                  </p>
+                  <button
+                    onClick={() => setBudgetFilter(0)}
+                    className="bg-[#003366] hover:bg-[#003366]/90 text-white px-6 py-2 rounded-lg transition-colors"
+                  >
+                    Show All Products
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {mockProducts.slice(0, 8).map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    onClick={setSelectedProduct}
-                  />
+                {filteredProducts.slice(0, 8).map((product) => (
+                  <div key={product.id} className="relative">
+                    <ProductCard
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                      onClick={setSelectedProduct}
+                    />
+                    <button
+                      onClick={() => handleToggleCompare(product)}
+                      className={`absolute top-4 left-4 z-20 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        compareProducts.find((p) => p.id === product.id)
+                          ? 'bg-[#00C851] text-white'
+                          : 'bg-white text-[#003366] border-2 border-[#003366] hover:bg-[#003366] hover:text-white'
+                      }`}
+                    >
+                      {compareProducts.find((p) => p.id === product.id)
+                        ? '✓ Added'
+                        : '+ Compare'}
+                    </button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -203,6 +318,14 @@ export default function App() {
           onUpdateQuantity={handleUpdateQuantity}
           onRemoveItem={handleRemoveItem}
           onCheckout={handleCheckout}
+        />
+      )}
+
+      {showComparison && (
+        <ProductComparison
+          products={compareProducts}
+          onClose={() => setShowComparison(false)}
+          onRemoveProduct={handleRemoveFromCompare}
         />
       )}
     </div>

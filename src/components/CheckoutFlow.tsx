@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, CreditCard, Package, CheckCircle, Truck, Store } from 'lucide-react';
 import { CartItem } from '../types';
+import { SMSOTPVerification } from './SMSOTPVerification';
 
 interface CheckoutFlowProps {
   items: CartItem[];
@@ -12,6 +13,8 @@ export function CheckoutFlow({ items, onComplete, onBack }: CheckoutFlowProps) {
   const [step, setStep] = useState(1);
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'fawry' | 'wallet' | 'installment'>('card');
+  const [phoneNumber, setPhoneNumber] = useState('01012345678');
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
 
   const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const shipping = deliveryMethod === 'delivery' ? (subtotal > 5000 ? 0 : 100) : 0;
@@ -137,9 +140,15 @@ export function CheckoutFlow({ items, onComplete, onBack }: CheckoutFlowProps) {
                     <label className="block text-[#1A1A1A] mb-2">Phone Number</label>
                     <input
                       type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                       className="w-full px-4 py-2 border-2 border-[#F0F4F8] rounded-lg outline-none focus:border-[#003366]"
                       placeholder="01XXXXXXXXX"
+                      maxLength={11}
                     />
+                    <p className="text-[#666666] text-xs mt-1">
+                      Egyptian mobile number (11 digits)
+                    </p>
                   </div>
                   <div>
                     <label className="block text-[#1A1A1A] mb-2">Governorate</label>
@@ -302,10 +311,16 @@ export function CheckoutFlow({ items, onComplete, onBack }: CheckoutFlowProps) {
                   Back
                 </button>
                 <button
-                  onClick={() => setStep(3)}
+                  onClick={() => {
+                    if (paymentMethod === 'installment') {
+                      setShowOTPVerification(true);
+                    } else {
+                      setStep(3);
+                    }
+                  }}
                   className="flex-1 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white py-3 rounded-lg transition-colors"
                 >
-                  Review Order
+                  {paymentMethod === 'installment' ? 'Verify Contract' : 'Review Order'}
                 </button>
               </div>
             </div>
@@ -385,6 +400,26 @@ export function CheckoutFlow({ items, onComplete, onBack }: CheckoutFlowProps) {
           </div>
         </div>
       </div>
+
+      {/* OTP Verification Modal for Installment */}
+      {showOTPVerification && paymentMethod === 'installment' && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <SMSOTPVerification
+            phoneNumber={phoneNumber}
+            onVerify={(otp) => {
+              console.log('OTP Verified:', otp);
+              setShowOTPVerification(false);
+              setStep(3);
+            }}
+            onBack={() => setShowOTPVerification(false)}
+            contractDetails={{
+              totalAmount: total,
+              monthlyPayment: Math.round(total / 24),
+              duration: 24,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
