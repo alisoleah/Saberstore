@@ -111,17 +111,17 @@ curl -X POST http://localhost:3000/api/auth/register \
 - ✅ `backend/SUPABASE_SETUP.md`
 - ✅ `backend/README.md`
 
-#### Week 2: Product & Order APIs ❌ NOT STARTED
-- Product CRUD endpoints
-- Search and filtering
-- Order management
-- Installment calculations
+#### Week 2: Product & Order APIs ✅ COMPLETED
+- ✅ Product CRUD endpoints (Admin)
+- ✅ Search and filtering
+- ✅ Order management
+- ✅ Installment calculations
 
-#### Week 3: KYC & Admin Features ❌ NOT STARTED
-- File upload for KYC documents
-- KYC submission endpoints
-- Admin dashboard APIs
-- Credit limit approval workflow
+#### Week 3: KYC & Admin Features ✅ COMPLETED
+- ✅ File upload for KYC documents (Local/S3 support)
+- ✅ KYC submission endpoints
+- ✅ Admin dashboard APIs (Pending list, Approve/Reject)
+- ✅ Credit limit approval workflow
 
 #### Week 4: Integrations ❌ NOT STARTED
 - SMS gateway (Twilio)

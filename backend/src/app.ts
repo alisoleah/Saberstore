@@ -4,6 +4,10 @@ import { connectDatabase } from './config/database';
 import config from './config/config';
 import authRoutes from './routes/auth.routes';
 import productsRoutes from './routes/products.routes';
+import ordersRoutes from './routes/orders.routes';
+import installmentsRoutes from './routes/installments.routes';
+import kycRoutes from './routes/kyc.routes';
+import adminRoutes from './routes/admin.routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware';
 
 const app: Express = express();
@@ -28,6 +32,10 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/installments', installmentsRoutes);
+app.use('/api/kyc', kycRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
@@ -58,6 +66,9 @@ async function startServer() {
       console.log(`   GET    /api/products/search`);
       console.log(`   GET    /api/products/budget/:amount`);
       console.log(`   GET    /api/categories`);
+      console.log(`   POST   /api/orders`);
+      console.log(`   GET    /api/orders`);
+      console.log(`   GET    /api/orders/:id`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
