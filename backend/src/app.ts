@@ -6,6 +6,8 @@ import authRoutes from './routes/auth.routes';
 import productsRoutes from './routes/products.routes';
 import ordersRoutes from './routes/orders.routes';
 import installmentsRoutes from './routes/installments.routes';
+import kycRoutes from './routes/kyc.routes';
+import adminRoutes from './routes/admin.routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware';
 
 const app: Express = express();
@@ -32,6 +34,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/installments', installmentsRoutes);
+app.use('/api/kyc', kycRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
