@@ -191,17 +191,8 @@ curl -X POST http://localhost:3000/api/auth/register \
 - ✅ Admin dashboard APIs (Pending list, Approve/Reject)
 - ✅ Credit limit approval workflow
 
-#### Week 4: Third-Party Integrations ⏳ PENDING (Optional)
-**Status:** NOT REQUIRED FOR MVP - Can be added post-launch
 
-- ⏳ SMS gateway (Twilio/Unifonic for Egypt)
-- ⏳ Payment gateway (Paymob/Fawry integration)
-- ⏳ AWS S3 storage (currently using local storage)
-- ⏳ Real OTP verification
-
-**Note:** Local file storage is implemented and working. These integrations enhance functionality but aren't blockers.
-
-#### Week 5: Production Deployment ⏳ READY TO START
+#### Week 4: Production Deployment ⏳ READY TO START
 **Status:** Backend is ready, frontend-backend integration needed first
 
 **What's Ready:**
@@ -216,32 +207,287 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 ---
 
-## 📋 Phases 7-11 (Future)
+## 🌐 Phase 7 - Multi-Channel Marketplace Integration
 
-### Phase 7: Enhanced Checkout ⏳ PENDING
+**Status**: ⏳ NOT STARTED - Database Schema Ready!
+**Priority**: 🔥 HIGH - Required for Business Expansion
+
+### What Phase 7 Delivers:
+Unified inventory management across **SaberStore + Amazon Egypt + Noon**:
+- ✅ **Database Schema Ready** - MarketplaceChannel, MarketplaceListing, InventoryLog tables exist!
+- ⏳ Real-time inventory sync (one inventory, multiple channels)
+- ⏳ Automatic order import from Amazon & Noon
+- ⏳ Centralized fulfillment dashboard
+- ⏳ Price management per channel
+- ⏳ Multi-channel analytics
+
+### How It Works:
+
+**Unified Inventory Flow:**
+```
+┌─────────────────┐
+│  Master Inventory│ ← Single source of truth (SaberStore DB)
+│   Total: 100     │
+└────────┬─────────┘
+         │
+    ┌────┴────────────────┬─────────────┐
+    ▼                     ▼             ▼
+┌─────────┐        ┌───────────┐   ┌────────┐
+│SaberStore│       │Amazon Egypt│   │  Noon  │
+│  30 units│       │  40 units  │   │30 units│
+└─────────┘        └───────────┘   └────────┘
+```
+
+**When a sale happens on Amazon:**
+1. Webhook receives Amazon order
+2. Auto-import to SaberStore system
+3. Deduct from master inventory
+4. Sync updated stock to all channels
+5. Fulfill order from warehouse
+
+### Phase 7 Implementation Plan:
+
+#### Step 1: Amazon Seller Central Integration (Week 1-2)
+**What you need:**
+- ✅ Amazon Seller Central account ([Register here](https://sellercentral.amazon.eg))
+- ⏳ SP-API credentials (replaces old MWS API)
+- ⏳ OAuth 2.0 setup for API access
+
+**Implementation:**
+1. **Register as Amazon Seller**
+   - Go to: https://sellercentral.amazon.eg
+   - Complete seller registration
+   - Get approved (1-2 days)
+
+2. **Get SP-API Access**
+   - Follow: https://developer-docs.amazon.com/sp-api/
+   - Register your application
+   - Get LWA credentials (Client ID, Client Secret)
+   - Get Refresh Token
+
+3. **Create Backend Services:**
+   ```typescript
+   // backend/src/services/amazon.service.ts
+   - connectToAmazon() - OAuth flow
+   - syncInventory() - Push stock levels to Amazon
+   - importOrders() - Pull new orders from Amazon
+   - updateOrderStatus() - Mark as shipped
+   - uploadProducts() - Bulk product upload
+   ```
+
+4. **API Endpoints:**
+   ```
+   POST /api/marketplace/amazon/connect - Connect account
+   POST /api/marketplace/amazon/sync-inventory - Sync stock
+   GET  /api/marketplace/amazon/orders - Get Amazon orders
+   POST /api/marketplace/products/:id/publish-to-amazon - List product
+   ```
+
+**Amazon SP-API Integration Steps:**
+
+**Step A: Get Credentials**
+```bash
+# 1. Register app in Amazon Seller Central
+#    Developer Console: https://sellercentral.amazon.eg/apps/manage
+
+# 2. Get these values:
+LWA_CLIENT_ID=amzn1.application-oa2-client.xxxxx
+LWA_CLIENT_SECRET=amzn1.oa2-cs.xxxxx
+REFRESH_TOKEN=Atzr|xxxxx
+MARKETPLACE_ID=A2VIGQ35RCS4UG  # Egypt marketplace
+```
+
+**Step B: Install Amazon SP-API SDK**
+```bash
+cd backend
+npm install amazon-sp-api
+```
+
+**Step C: Implement Integration** (Code examples included in Phase 7 plan)
+
+#### Step 2: Noon Integration (Week 2-3)
+**What you need:**
+- ✅ Noon seller account ([Register here](https://sell.noon.com))
+- ⏳ Noon API credentials
+- ⏳ Webhook setup
+
+**Similar process to Amazon:**
+1. Register as Noon seller
+2. Get API credentials
+3. Implement `noon.service.ts`
+4. Create sync jobs
+
+#### Step 3: Inventory Sync System (Week 3-4)
+**Features to implement:**
+
+1. **Central Inventory Management**
+   ```typescript
+   // When product stock changes:
+   async updateInventory(productId: string, newQty: number) {
+     // 1. Update master inventory
+     await updateProduct(productId, { stockQty: newQty });
+
+     // 2. Calculate allocation per channel
+     const allocation = {
+       saberstore: Math.floor(newQty * 0.3),
+       amazon: Math.floor(newQty * 0.4),
+       noon: Math.floor(newQty * 0.3),
+     };
+
+     // 3. Push to all channels
+     await syncToAmazon(productId, allocation.amazon);
+     await syncToNoon(productId, allocation.noon);
+
+     // 4. Log changes
+     await createInventoryLog({
+       productId,
+       reason: 'allocation',
+       changes: allocation
+     });
+   }
+   ```
+
+2. **Order Import System**
+   ```typescript
+   // Cron job runs every 5 minutes
+   async importMarketplaceOrders() {
+     // Import from Amazon
+     const amazonOrders = await amazon.getNewOrders();
+     for (const order of amazonOrders) {
+       await createOrderFromMarketplace(order, 'amazon');
+     }
+
+     // Import from Noon
+     const noonOrders = await noon.getNewOrders();
+     for (const order of noonOrders) {
+       await createOrderFromMarketplace(order, 'noon');
+     }
+   }
+   ```
+
+3. **Webhook Receivers**
+   ```typescript
+   // Real-time order notifications
+   POST /api/webhooks/amazon/order-created
+   POST /api/webhooks/noon/order-created
+   POST /api/webhooks/amazon/inventory-updated
+   ```
+
+#### Step 4: Admin Dashboard Enhancement (Week 4)
+
+**Add to existing Admin Dashboard:**
+1. **Multi-Channel Inventory View**
+   - See stock allocation across all channels
+   - Adjust allocation percentages
+   - View sync status
+
+2. **Unified Order Management**
+   - Single view for all orders (SaberStore + Amazon + Noon)
+   - Filter by channel
+   - Bulk fulfillment
+
+3. **Channel Analytics**
+   - Sales by channel
+   - Best-performing products per channel
+   - Inventory turnover rate
+
+### Files to Create:
+
+**Backend Services:**
+```
+backend/src/services/
+├── amazon.service.ts          ⏳ NEW
+├── noon.service.ts            ⏳ NEW
+├── marketplace.service.ts     ⏳ NEW
+└── inventory-sync.service.ts  ⏳ NEW
+
+backend/src/controllers/
+├── marketplace.controller.ts  ⏳ NEW
+└── inventory.controller.ts    ⏳ NEW
+
+backend/src/routes/
+├── marketplace.routes.ts      ⏳ NEW
+└── inventory.routes.ts        ⏳ NEW
+
+backend/src/jobs/
+├── sync-inventory.job.ts      ⏳ NEW (Cron job)
+└── import-orders.job.ts       ⏳ NEW (Cron job)
+
+backend/src/webhooks/
+├── amazon.webhook.ts          ⏳ NEW
+└── noon.webhook.ts            ⏳ NEW
+```
+
+**Frontend Components:**
+```
+src/components/admin/
+├── MultiChannelInventory.tsx  ⏳ NEW
+├── ChannelSelector.tsx        ⏳ NEW
+├── InventoryAllocation.tsx    ⏳ NEW
+└── UnifiedOrdersTable.tsx     ⏳ NEW
+
+src/pages/
+└── InventoryManagement.tsx    ⏳ NEW
+```
+
+### Amazon SP-API Documentation:
+- **Main Docs:** https://developer-docs.amazon.com/sp-api/
+- **Inventory API:** https://developer-docs.amazon.com/sp-api/docs/fba-inventory-api-v1-reference
+- **Orders API:** https://developer-docs.amazon.com/sp-api/docs/orders-api-v0-reference
+- **Feeds API:** https://developer-docs.amazon.com/sp-api/docs/feeds-api-v2021-06-30-reference (for bulk uploads)
+
+### Noon API Documentation:
+- **Seller Portal:** https://sell.noon.com
+- **API Docs:** Contact Noon seller support for API access
+
+### Implementation Timeline:
+- **Week 1-2:** Amazon SP-API integration & testing
+- **Week 3:** Noon API integration
+- **Week 4:** Inventory sync system & webhooks
+- **Week 5:** Admin dashboard updates & testing
+
+### Success Metrics:
+- ✅ Single inventory update syncs to all 3 channels within 1 minute
+- ✅ Amazon/Noon orders auto-import within 5 minutes
+- ✅ Zero overselling incidents (out-of-stock protection)
+- ✅ Centralized fulfillment reduces processing time by 60%
+
+---
+
+## 📋 Phases 8-12 (Future Enhancements)
+
+### Phase 8: Enhanced Checkout ⏳ PENDING
 - Down payment split logic
 - Google Maps store locator
 - Real-time stock availability
 
-### Phase 8: UX Polish ⏳ PENDING
+### Phase 9: UX Polish ⏳ PENDING
 - Accessibility improvements
 - Loading states
 - Error boundaries
 
-### Phase 9: Performance ⏳ PENDING
+### Phase 10: Performance ⏳ PENDING
 - Code splitting
 - Image optimization
 - Memoization
 
-### Phase 10: Security ⏳ PENDING
+### Phase 11: Security ⏳ PENDING
 - Input validation
 - File upload security
 - Penetration testing
 
-### Phase 11: Additional Features ⏳ PENDING
+### Phase 12: Additional Features ⏳ PENDING
 - User account management
 - Payment tracking
 - SMS notifications
+
+### Phase 13: Third-Party Integrations ⏳ OPTIONAL (Can add anytime)
+- ⏳ SMS gateway (Twilio/Unifonic for Egypt)
+- ⏳ Payment gateway (Paymob/Fawry integration)
+- ⏳ AWS S3 storage (currently using local storage)
+- ⏳ Real OTP verification
+
+**Note:** Local file storage is implemented and working. These integrations enhance functionality but aren't blockers.
 
 ---
 
@@ -359,31 +605,48 @@ These can be added after launch:
 ## 📊 Project Completion Status
 
 ```
-Frontend:           ████████████████████ 100% ✅
-Backend API:        ████████████████████ 100% ✅
-Database:           ████████████████████ 100% ✅
-Admin Dashboard:    ████████████████████ 100% ✅
-Frontend-Backend:   ░░░░░░░░░░░░░░░░░░░░   0% ⏳ ← YOU ARE HERE
-3rd Party APIs:     ░░░░░░░░░░░░░░░░░░░░   0% ⏳ (Optional)
-Deployment:         ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+Phase 1-6 (Core):        ████████████████████ 100% ✅
+Frontend:                ████████████████████ 100% ✅
+Backend API:             ████████████████████ 100% ✅
+Database Schema:         ████████████████████ 100% ✅ (Marketplace-ready!)
+Admin Dashboard:         ████████████████████ 100% ✅
 
-OVERALL MVP:        ████████████████░░░░  85% ✅
+Frontend-Backend:        ░░░░░░░░░░░░░░░░░░░░   0% ⏳ ← NEXT: Connect APIs
+Phase 7 (Marketplace):   ░░░░░░░░░░░░░░░░░░░░   0% ⏳ Schema ready!
+Payment Integration:     ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+Deployment:              ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+
+────────────────────────────────────────────────
+OVERALL MVP (No marketplace):   ████████████████░░░░  85% ✅
+FULL SYSTEM (With marketplace): ██████████████░░░░░░  70% ✅
 ```
 
 ---
 
 ## 🚀 Next Steps Summary
 
-**Immediate (This Week):**
-1. ✅ Backend is ready - test it!
+**PRIORITY 1 - This Week (Frontend-Backend Integration):**
+1. ✅ Test backend server (it's running!)
 2. 🔥 Connect frontend to backend APIs
-3. 🔥 Replace mock data with real data
+3. 🔥 Replace mock data with real API calls
 4. ✅ Test end-to-end user flows
 
-**Before Launch:**
-5. Add payment gateway integration
-6. Deploy backend & frontend
-7. Production testing
+**PRIORITY 2 - Next 2 Weeks (Payment & Deploy):**
+5. Add payment gateway integration (Paymob/Fawry)
+6. Deploy backend to Railway/Render
+7. Deploy frontend to Vercel
+8. Production testing
+
+**PRIORITY 3 - Future (Marketplace Integration):**
+9. Register as Amazon Egypt seller
+10. Get Amazon SP-API credentials
+11. Implement Phase 7 marketplace integration
+12. Launch multi-channel selling
+
+**Optional (Anytime):**
+- SMS gateway for real OTP
+- AWS S3 for file storage
+- Advanced analytics
 
 ---
 
