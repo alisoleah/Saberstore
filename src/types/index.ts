@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   oldPrice?: number;
   image: string;
+  images?: string[]; // Array of image URLs for carousel
   rating: number;
   reviewCount: number;
   inStock: boolean;
