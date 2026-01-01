@@ -1574,75 +1574,96 @@ A comprehensive security audit following OWASP Top 10 has identified **6 CRITICA
 
 ### Implementation Plan
 
-#### Week 1: Critical Fixes (Days 1-5)
+#### Week 1: Critical Fixes (Days 1-5) - ✅ 67% COMPLETE
 
-**Day 1-2: Secrets Rotation & Git Cleanup**
+**Day 1-2: Secrets Rotation & Git Cleanup** ✅ DONE
 ```bash
-# Remove .env from git history
-git filter-branch --force --index-filter \
-  "git rm --cached --ignore-unmatch backend/.env" \
-  --prune-empty --tag-name-filter cat -- --all
+# ✅ COMPLETED:
+# - Created .env.example with secure template
+# - Created SECRETS_ROTATION_GUIDE.md with step-by-step instructions
+# - Generated new 64-byte JWT secrets
+# - Generated 32-byte encryption key
+# - .env not in git history (verified)
 
-# Generate new secrets
-openssl rand -base64 64  # New JWT secret
-openssl rand -base64 64  # New refresh secret
-openssl rand -base64 32  # New encryption key
-
-# Rotate database password in Supabase
-# Update all environment variables
+# ⏳ USER ACTION REQUIRED:
+# 1. Rotate database password in Supabase dashboard
+# 2. Update .env with new secrets from SECRETS_ROTATION_GUIDE.md
+# 3. Change admin password to strong 12+ char password
 ```
 
-**Day 3-4: Rate Limiting**
+**Day 3-4: Rate Limiting** ✅ DONE
 ```bash
-cd backend
-npm install express-rate-limit redis ioredis
+# ✅ COMPLETED:
+npm install express-rate-limit redis ioredis  # Installed
 ```
 
-Create middleware:
-- `rateLimiter.middleware.ts` - Auth, API, upload, OTP limiters
-- Apply to routes with different thresholds
+Created middleware:
+- ✅ `rateLimiter.middleware.ts` - Auth (5/15min), Registration (3/hr), OTP (3/5min), API (100/15min)
+- ✅ Applied to auth routes and global API
+- ✅ Redis-ready with fallback to in-memory
 
-**Day 5: Security Headers**
+**Day 5: Security Headers** ✅ DONE
 ```bash
-npm install helmet
+# ✅ COMPLETED:
+npm install helmet  # Installed
 ```
 
-Configure Helmet with:
-- Content Security Policy
-- HSTS (1 year, includeSubDomains)
-- X-Frame-Options: DENY
-- X-Content-Type-Options: nosniff
+Configured Helmet with:
+- ✅ Content Security Policy (CSP)
+- ✅ HSTS (1 year, includeSubDomains, preload)
+- ✅ X-Frame-Options: DENY
+- ✅ X-Content-Type-Options: nosniff
+- ✅ Hide X-Powered-By
+- ✅ XSS Filter enabled
 
-#### Week 2: High Priority (Days 6-10)
-
-**Day 6-7: Input Sanitization**
+**Day 6: Input Sanitization** ✅ DONE
 ```bash
-npm install express-validator xss-clean express-mongo-sanitize dompurify zod
+# ✅ COMPLETED:
+npm install express-validator xss-clean express-mongo-sanitize zod  # Installed
 ```
 
-Create:
-- `sanitize.middleware.ts` - XSS/NoSQL injection prevention
-- `schemas/*.ts` - Zod validation for all endpoints
+Created:
+- ✅ `sanitize.middleware.ts` - XSS and NoSQL injection prevention
+- ✅ Applied globally to all requests (body, query, params)
+- ⏳ TODO: Zod schemas for all endpoints (Week 2)
 
-**Day 8-9: Token Blacklist & CSRF**
+#### Week 2: High Priority (Days 6-10) - ⏳ NEXT
+
+**Day 7-8: Token Blacklist & CSRF** ⏳ NEXT (CRITICAL)
+- Priority: 🔥🔥🔥 Remaining 2 critical vulnerabilities
 ```bash
-npm install ioredis csurf cookie-parser
+npm install ioredis csurf cookie-parser  # ioredis already installed
 ```
 
-Implement:
-- `tokenBlacklist.service.ts` - JWT revocation
-- CSRF middleware for state-changing requests
-- Frontend CSRF token integration
+TODO:
+- [ ] Create `tokenBlacklist.service.ts` - JWT revocation with Redis
+- [ ] Update logout endpoint to blacklist tokens
+- [ ] Add blacklist check to auth middleware
+- [ ] Install and configure csurf middleware
+- [ ] Add CSRF token endpoint for frontend
+- [ ] Update frontend to include CSRF tokens
 
-**Day 10: File Upload Security & PII Encryption**
+**Day 9-10: Zod Validation & File Upload Security**
 ```bash
-npm install crypto-js @aws-sdk/s3-request-presigner
+npm install crypto-js @aws-sdk/s3-request-presigner  # zod already installed
 ```
 
-Updates:
-- S3 ACL to private + signed URLs
-- AES-256 encryption for National ID
-- `encryption.service.ts`
+TODO:
+- [ ] Create Zod schemas: `schemas/user.schema.ts`, `schemas/product.schema.ts`, `schemas/order.schema.ts`
+- [ ] Apply Zod validation to all endpoints
+- [ ] Update S3 storage service: change ACL to private
+- [ ] Generate signed URLs for file access
+- [ ] Add file type validation (magic bytes)
+
+**Day 11: PII Encryption & Password Strength**
+
+TODO:
+- [ ] Create `encryption.service.ts` - AES-256 encryption/decryption
+- [ ] Encrypt National ID field before saving to database
+- [ ] Decrypt National ID when retrieving from database
+- [ ] Create `passwordStrength.ts` - Enhanced password validation (12+ chars)
+- [ ] Update registration validation to require strong passwords
+- [ ] Add password strength meter to frontend
 
 #### Week 3: Testing & Deployment Prep (Days 11-18)
 
