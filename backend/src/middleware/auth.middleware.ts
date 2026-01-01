@@ -24,6 +24,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
     next();
   } catch (error: any) {
+    console.error('Auth Error:', error);
     return res.status(401).json({
       success: false,
       message: error.message || 'Invalid or expired token',

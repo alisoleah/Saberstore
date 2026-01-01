@@ -195,6 +195,12 @@ export class AuthService {
 
       return decoded;
     } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error('Token expired');
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error(`Invalid token: ${error.message}`);
+      }
       throw new Error('Invalid or expired token');
     }
   }
