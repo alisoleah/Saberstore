@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authController from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { authLimiter, registrationLimiter } from '../middleware/rateLimiter.middleware';
 
 const router = Router();
 
@@ -8,15 +9,17 @@ const router = Router();
  * POST /api/auth/register
  * Register a new user
  * Body: { fullName, phoneNumber, email?, password, governorate? }
+ * Rate limit: 3 registrations per hour per IP
  */
-router.post('/register', authController.register);
+router.post('/register', registrationLimiter, authController.register);
 
 /**
  * POST /api/auth/login
  * Login with phone and password
  * Body: { phoneNumber, password }
+ * Rate limit: 5 login attempts per 15 minutes per IP
  */
-router.post('/login', authController.login);
+router.post('/login', authLimiter, authController.login);
 
 /**
  * POST /api/auth/refresh

@@ -1,6 +1,7 @@
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { calculateInstallment } from '../utils/installmentCalculator';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -10,6 +11,20 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart, onClick }: ProductCardProps) {
   const installment = calculateInstallment(product.price, 0, 24);
+
+  // Image carousel state
+  const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  };
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
 
   return (
     <div 
@@ -44,13 +59,45 @@ export function ProductCard({ product, onAddToCart, onClick }: ProductCardProps)
           <Heart className="w-4 h-4 text-[#666666]" />
         </button>
 
-        {/* Product image */}
-        <div className="aspect-square flex items-center justify-center bg-white mb-4">
+        {/* Product image with carousel */}
+        <div className="aspect-square flex items-center justify-center bg-white mb-4 relative">
           <img
-            src={product.image}
-            alt={product.name}
+            src={productImages[currentImageIndex]}
+            alt={`${product.name} ${currentImageIndex + 1}`}
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           />
+
+          {/* Carousel navigation - only show if multiple images */}
+          {productImages.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1 rounded-r shadow-md transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronLeft className="w-5 h-5 text-[#003366]" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1 rounded-l shadow-md transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronRight className="w-5 h-5 text-[#003366]" />
+              </button>
+
+              {/* Image dots indicator */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {productImages.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      idx === currentImageIndex
+                        ? 'bg-[#FF6600] w-4'
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
